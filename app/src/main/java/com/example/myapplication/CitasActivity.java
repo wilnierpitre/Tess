@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -60,7 +61,7 @@ public class CitasActivity extends AppCompatActivity implements View.OnClickList
     int minutos;
     final Calendar c = Calendar.getInstance();
     Integer id;
-    private int dia, mes, ano;
+    private int dia, mes, ano,selectedYear,selectedMonth,selectedDay,selectedHour,selectedMinutes;
     private AsyncHttpClient cliente;
 
     private Calendar selectedDate = Calendar.getInstance();
@@ -130,7 +131,8 @@ public class CitasActivity extends AppCompatActivity implements View.OnClickList
 
                         Intent intent = new Intent(Intent.ACTION_INSERT).setData(CalendarContract.Events.CONTENT_URI);
                         // intent.setType("vnd.android.cursor.item/event");
-
+                        selectedDate.set(selectedYear,selectedMonth,selectedDay,selectedHour,selectedMinutes);
+                        Log.d(TAG, "RegistrarCita: " + selectedDate.getTimeInMillis());
                         intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, selectedDate.getTimeInMillis());
                         intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, selectedDate.getTimeInMillis());
 
@@ -215,8 +217,11 @@ public class CitasActivity extends AppCompatActivity implements View.OnClickList
 
             DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
                 fecha_cita = dayOfMonth + "/" + (month + 1) + "/" + year;
-                selectedDate.set(year, month, dayOfMonth);
-                Log.d(TAG, "onClick: "+ selectedDate.getTimeInMillis());
+               // selectedDate.set(year, month, dayOfMonth);
+                selectedYear = year;
+                selectedMonth = month;
+                selectedDay = dayOfMonth;
+                Log.d(TAG, "onClick: " + selectedDate.getTimeInMillis());
                 fechaseleccionada.setText(fecha_cita);
 
             }, ano, mes, dia);
@@ -226,7 +231,15 @@ public class CitasActivity extends AppCompatActivity implements View.OnClickList
         if (v == btnHora) {
             hora = c.get(Calendar.HOUR_OF_DAY);
             minutos = c.get(Calendar.MINUTE);
-            TimePickerDialog timePickerDialog = new TimePickerDialog(this, (view, hourOfDay, minute) -> horaselecionada.setText(hourOfDay + ":" + minute), hora, minutos, false);
+            //TimePickerDialog timePickerDialog = new TimePickerDialog(this, (view, hourOfDay, minute) -> horaselecionada.setText(hourOfDay + ":" + minute), hora, minutos, false);
+            TimePickerDialog timePickerDialog = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+                @Override
+                public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                    horaselecionada.setText(hourOfDay + ":" + minute);
+                    selectedHour = hourOfDay;
+                    selectedMinutes = minute;
+                }
+            },hora,minutos,false);
             timePickerDialog.show();
 
         }
@@ -252,8 +265,7 @@ public class CitasActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void cargarSpinner(String respuesta) {
-        ArrayList<Medicos> lista;
-        lista = new ArrayList<>();
+        ArrayList<Medicos> lista = new ArrayList<Medicos>();
 
         try {
             JSONArray response = new JSONArray(respuesta);
